@@ -119,8 +119,11 @@
         {% for article in articles %}
         <div class="card article-card">
             {% if article.featured_image %}
-            <img src="{{ article.featured_image.url }}" class="card-img-top article-image" alt="{{ article.title }}">
-            {% endif %}
+<img src="{{ article.featured_image.url }}" class="card-img-top article-image" alt="{{ article.title }}">
+{% else %}
+<img src="{% static 'images/default.jpg' %}" class="card-img-top article-image" alt="Default image">
+{% endif %}
+
             <div class="card-body">
                 {% for category in article.categories.all %}
                 <span class="category-badge">{{ category.name }}</span>
