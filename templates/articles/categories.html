@@ -26,10 +26,8 @@
                     </p>
                     <p class="card-text">
                         <small class="text-muted">
-                      
+                            <i class="fas fa-newspaper"></i> {{ category.article_count }} articles
                         </small>
-
-
                     </p>
                    <a href="{% url 'article_list' %}?category={{ category.slug }}" class="btn btn-primary">
                         View Articles
