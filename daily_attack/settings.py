@@ -53,7 +53,9 @@ INSTALLED_APPS = [
     'news',
     'users',
     'api',
+    
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -65,6 +67,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    
+
 ]
 
 ROOT_URLCONF = 'daily_attack.urls'
@@ -241,3 +245,8 @@ GEMINI_API_KEY = ''
 
 # Custom user model
 AUTH_USER_MODEL = 'users.User'
+
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://daily-attaks-new-1.onrender.com",
+]
