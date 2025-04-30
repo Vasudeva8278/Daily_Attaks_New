@@ -118,7 +118,7 @@
             Welcome Back
         </div>
         <div class="login-body">
-            <form method="post" action="{% url 'login' %}">
+            <form method="post" action="{% url 'users:login' %}">
                 {% csrf_token %}
                 {% if form.errors %}
                     <div class="alert alert-danger">
@@ -153,8 +153,7 @@
             </form>
             
             <div class="login-footer">
-                <p class="mb-2"><a href="{% url 'password_reset' %}">Forgot your password?</a></p>
-                <p class="mb-0">Don't have an account? <a href="{% url 'register' %}">Register now</a></p>
+                <p class="mb-0">Don't have an account? <a href="{% url 'users:register' %}">Register now</a></p>
             </div>
         </div>
     </div>

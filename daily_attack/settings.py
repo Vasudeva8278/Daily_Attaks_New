@@ -210,27 +210,26 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
+# Session Settings
+SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
+SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_SAVE_EVERY_REQUEST = True
+
 # AllAuth configuration
-
-
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_EMAIL_VERIFICATION = 'none'  # Set to 'none' for development
-
-ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = False
-
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = 'none'  # Set to 'mandatory' in production
 ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
 
-ACCOUNT_LOGIN_METHODS = {'email'}
-ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
-ACCOUNT_RATE_LIMITS = {'login_failed': '5/m'}
-
-
-LOGIN_URL = 'login'
+# Login/Logout Settings
+LOGIN_URL = 'users:login'
 LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
-
-# Email settings (for development)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+LOGOUT_REDIRECT_URL = 'users:login'
+ACCOUNT_LOGOUT_ON_GET = False  # Require POST request for logout
+ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = True
 
 # LinkedIn API settings
 LINKEDIN_CLIENT_ID = ''
