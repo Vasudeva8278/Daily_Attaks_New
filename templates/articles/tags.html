@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Tags - The Daily Attack{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">
+        <i class="fas fa-hashtag"></i> Tags
+    </h1>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    {% for tag in tags %}
+                    <a href="{% url 'article-list' %}?tag={{ tag.slug }}" 
+                       class="btn btn-outline-primary m-1"
+                       style="font-size: {{ tag.weight }}em;">
+                        <i class="fas fa-tag"></i> {{ tag.name }}
+                        <span class="badge bg-secondary">{{ tag.articles.count }}</span>
+                    </a>
+                    {% empty %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> No tags available yet.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

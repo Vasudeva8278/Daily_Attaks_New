@@ -21,7 +21,7 @@ from django.conf.urls.static import static
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
-from news.views import home
+from news.views import home, category_list, tag_list  
 from users.views import CustomLoginView, CustomSignupView
 
 schema_view = get_schema_view(
@@ -44,6 +44,12 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),
     path('auth/', include('allauth.urls')),
     path('users/', include('users.urls')),
+    
+    # Categories and Tags URLs
+    path('categories/', category_list, name='category_list'),
+    path('tags/', tag_list, name='tag_list'),
+    
+    # News URLs under articles prefix
     path('articles/', include('news.urls')),
     
     # Direct login and register URLs

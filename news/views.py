@@ -20,7 +20,7 @@ def home(request):
 
 def article_list(request):
     # Get filter parameters
-    category_id = request.GET.get('category')
+    category_slug = request.GET.get('category')
     tag_id = request.GET.get('tag')
     search = request.GET.get('search')
     sort = request.GET.get('sort', '-created_at')
@@ -29,8 +29,8 @@ def article_list(request):
     articles = Article.objects.all()
     
     # Apply filters
-    if category_id:
-        articles = articles.filter(categories__id=category_id)
+    if category_slug:
+        articles = articles.filter(categories__slug=category_slug)
     if tag_id:
         articles = articles.filter(tags__id=tag_id)
     if search:
@@ -116,3 +116,35 @@ def article_edit(request, pk):
         'tags': tags,
     }
     return render(request, 'articles/form.html', context)
+
+def category_list(request):
+    """Render the categories page."""
+    categories = Category.objects.all().order_by('name')
+    for category in categories:
+        category.article_count = category.articles.count()
+    
+    context = {
+        'categories': categories,
+    }
+    return render(request, 'articles/categories.html', context)
+
+def tag_list(request):
+    """Render the tags page."""
+    tags = Tag.objects.all().order_by('name')
+    
+    # Calculate tag weights based on article count
+    max_count = max((tag.articles.count() for tag in tags), default=1)
+    min_count = min((tag.articles.count() for tag in tags), default=1)
+    
+    for tag in tags:
+        count = tag.articles.count()
+        # Calculate weight between 0.8 and 2.0 based on article count
+        if max_count == min_count:
+            tag.weight = 1.0
+        else:
+            tag.weight = 0.8 + (count - min_count) * 1.2 / (max_count - min_count)
+    
+    context = {
+        'tags': tags,
+    }
+    return render(request, 'articles/tags.html', context)

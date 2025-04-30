@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Categories - The Daily Attack{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-4">
+                <i class="fas fa-folder"></i> Categories
+            </h1>
+            <p class="lead text-muted">Browse articles by category</p>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for category in categories %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-folder"></i> {{ category.name }}
+                    </h5>
+                    <p class="card-text text-muted">
+                        {{ category.description|default:"No description available" }}
+                    </p>
+                    <p class="card-text">
+                        <small class="text-muted">
+                            <i class="fas fa-newspaper"></i> {{ category.articles.count }} articles
+                        </small>
+                    </p>
+                   <a href="{% url 'article_list' %}?category={{ category.slug }}" class="btn btn-primary">
+                        View Articles
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> No categories available yet.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
