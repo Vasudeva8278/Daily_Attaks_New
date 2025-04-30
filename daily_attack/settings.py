@@ -26,8 +26,7 @@ SECRET_KEY = 'django-insecure-0oc!bih7d6j+9ln5xx24-n8#)aq=*l$znzis%239!!op&^wq(3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['daily-attaks-new-1.onrender.com', 'localhost', '127.0.0.1']
 
 # Application definition
 
@@ -212,15 +211,19 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # AllAuth configuration
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_EMAIL_REQUIRED = True
+
+
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_EMAIL_VERIFICATION = 'none'  # Set to 'none' for development
-ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5
-ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300
+
 ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = False
-ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = True
+
 ACCOUNT_UNIQUE_EMAIL = True
+
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+ACCOUNT_RATE_LIMITS = {'login_failed': '5/m'}
+
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = '/'
