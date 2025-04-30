@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if article %}Edit{% else %}Create{% endif %} Article - The Daily Attack{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title mb-0">{% if article %}Edit{% else %}Create{% endif %} Article</h2>
+            </div>
+            <div class="card-body">
+                <form id="articleForm" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="title" name="title" value="{{ article.title|default:'' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="excerpt" class="form-label">Excerpt</label>
+                        <textarea class="form-control" id="excerpt" name="excerpt" rows="3">{{ article.excerpt|default:'' }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Content</label>
+                        <textarea class="form-control" id="content" name="content" rows="10" required>{{ article.content|default:'' }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="featured_image" class="form-label">Featured Image</label>
+                        <input type="file" class="form-control" id="featured_image" name="featured_image" accept="image/*">
+                        {% if article.featured_image %}
+                            <div class="mt-2">
+                                <img src="{{ article.featured_image.url }}" alt="Current featured image" class="img-thumbnail" style="max-height: 200px;">
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="categories" class="form-label">Categories</label>
+                        <select class="form-select" id="categories" name="categories" multiple>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}" {% if category in article.categories.all %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="tags" class="form-label">Tags</label>
+                        <select class="form-select" id="tags" name="tags" multiple>
+                            {% for tag in tags %}
+                                <option value="{{ tag.id }}" {% if tag in article.tags.all %}selected{% endif %}>
+                                    {{ tag.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="draft" {% if article.status == 'draft' %}selected{% endif %}>Draft</option>
+                            <option value="published" {% if article.status == 'published' %}selected{% endif %}>Published</option>
+                        </select>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary">
+                            {% if article %}Update{% else %}Create{% endif %} Article
+                        </button>
+                        <a href="/articles" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js"></script>
+<script>
+$(document).ready(function() {
+    // Initialize Select2 for categories and tags
+    $('#categories, #tags').select2({
+        placeholder: 'Select options',
+        allowClear: true
+    });
+
+    // Initialize TinyMCE for content editor
+    tinymce.init({
+        selector: '#content',
+        height: 500,
+        plugins: [
+            'advlist autolink lists link image charmap print preview anchor',
+            'searchreplace visualblocks code fullscreen',
+            'insertdatetime media table paste code help wordcount'
+        ],
+        toolbar: 'undo redo | formatselect | bold italic backcolor | \
+                 alignleft aligncenter alignright alignjustify | \
+                 bullist numlist outdent indent | removeformat | help'
+    });
+
+    // Form submission
+    $('#articleForm').submit(function(e) {
+        e.preventDefault();
+        
+        // Get form data
+        const formData = new FormData(this);
+        
+        // Add TinyMCE content
+        formData.set('content', tinymce.get('content').getContent());
+        
+        // Submit form
+        $.ajax({
+            url: '{% if article %}/api/articles/{{ article.id }}/{% else %}/api/articles/{% endif %}',
+            type: '{% if article %}PUT{% else %}POST{% endif %}',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                window.location.href = '/articles/' + response.id;
+            },
+            error: function(xhr) {
+                alert('Error saving article: ' + xhr.responseJSON.error);
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

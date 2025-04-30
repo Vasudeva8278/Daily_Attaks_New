@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - The Daily Attack{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="jumbotron bg-light p-5 rounded">
+            <h1 class="display-4">Welcome to The Daily Attack</h1>
+            <p class="lead">Your trusted source for news and analysis, powered by AI.</p>
+            <hr class="my-4">
+            <p>Discover the latest articles, enhanced with artificial intelligence for better readability and engagement.</p>
+            <a class="btn btn-primary btn-lg" href="/articles" role="button">Browse Articles</a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-newspaper"></i> Latest Articles</h5>
+                <p class="card-text">Stay updated with our most recent news and analysis pieces.</p>
+                <a href="/articles" class="btn btn-outline-primary">View Articles</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-tags"></i> Popular Categories</h5>
+                <p class="card-text">Explore news by categories and find what interests you most.</p>
+                <a href="/categories" class="btn btn-outline-primary">View Categories</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-chart-line"></i> Trending Topics</h5>
+                <p class="card-text">See what's trending and join the conversation.</p>
+                <a href="/tags" class="btn btn-outline-primary">View Tags</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

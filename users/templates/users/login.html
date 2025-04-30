@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login - The Daily Attack{% endblock %}
+
+{% block extra_css %}
+<style>
+    .login-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        padding: 40px 20px;
+    }
+    
+    .login-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        max-width: 400px;
+        margin: auto;
+        animation: slideUp 0.5s ease-out;
+    }
+    
+    @keyframes slideUp {
+        from {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    
+    .login-header {
+        background: #2c3e50;
+        color: white;
+        padding: 20px;
+        text-align: center;
+        font-size: 24px;
+        font-weight: 600;
+    }
+    
+    .login-body {
+        padding: 30px;
+    }
+    
+    .form-control {
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        padding: 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: #2c3e50;
+        box-shadow: 0 0 0 0.2rem rgba(44, 62, 80, 0.25);
+    }
+    
+    .form-label {
+        font-weight: 500;
+        color: #2c3e50;
+        margin-bottom: 8px;
+    }
+    
+    .btn-login {
+        background: #2c3e50;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 12px;
+        font-weight: 600;
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-login:hover {
+        background: #34495e;
+        transform: translateY(-1px);
+    }
+    
+    .login-footer {
+        text-align: center;
+        margin-top: 20px;
+    }
+    
+    .login-footer a {
+        color: #2c3e50;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s ease;
+    }
+    
+    .login-footer a:hover {
+        color: #34495e;
+        text-decoration: underline;
+    }
+    
+    .alert-danger {
+        border-radius: 8px;
+        border: none;
+        background-color: #fee2e2;
+        color: #991b1b;
+        padding: 12px;
+        margin-bottom: 20px;
+    }
+    
+    .form-check-label {
+        color: #4a5568;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            Welcome Back
+        </div>
+        <div class="login-body">
+            <form method="post" action="{% url 'login' %}">
+                {% csrf_token %}
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <p class="mb-0">{{ error }}</p>
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                {% if next %}
+                    <input type="hidden" name="next" value="{{ next }}">
+                {% endif %}
+                
+                <div class="mb-4">
+                    <label for="id_login" class="form-label">Email or Username</label>
+                    <input type="text" name="login" id="id_login" class="form-control" required>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="id_password" class="form-label">Password</label>
+                    <input type="password" name="password" id="id_password" class="form-control" required>
+                </div>
+                
+                <div class="mb-4 form-check">
+                    <input type="checkbox" name="remember" id="id_remember" class="form-check-input">
+                    <label class="form-check-label" for="id_remember">Remember me</label>
+                </div>
+                
+                <button type="submit" class="btn btn-login">Sign In</button>
+            </form>
+            
+            <div class="login-footer">
+                <p class="mb-2"><a href="{% url 'password_reset' %}">Forgot your password?</a></p>
+                <p class="mb-0">Don't have an account? <a href="{% url 'register' %}">Register now</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
