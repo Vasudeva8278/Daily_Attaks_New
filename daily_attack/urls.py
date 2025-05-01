@@ -49,8 +49,8 @@ urlpatterns = [
     path('categories/', category_list, name='category_list'),
     path('tags/', tag_list, name='tag_list'),
     
-    # News URLs under articles prefix
-    path('articles/', include('news.urls')),
+    # News URLs
+    path('', include('news.urls')),  
     
     # Direct login and register URLs
     path('login/', CustomLoginView.as_view(), name='login'),
@@ -76,4 +76,3 @@ else:
     urlpatterns += [
         re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
     ]
-

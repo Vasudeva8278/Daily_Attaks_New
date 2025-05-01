@@ -2,6 +2,13 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils.text import slugify
 from django.utils import timezone
+from django.core.exceptions import ValidationError
+
+def validate_image_size(image):
+    file_size = image.size
+    max_size = 50 * 1024  # 50KB
+    if file_size > max_size:
+        raise ValidationError(f"Maximum file size allowed is 50KB. Current file size is {file_size/1024:.1f}KB")
 
 User = get_user_model()
 
@@ -51,7 +58,13 @@ class Article(models.Model):
     slug = models.SlugField(max_length=200, unique=True)
     content = models.TextField()
     excerpt = models.TextField(blank=True)
-    featured_image = models.ImageField(upload_to='articles/', blank=True, null=True)
+    featured_image = models.ImageField(
+        upload_to='articles/images/%Y/%m/',
+        validators=[validate_image_size],
+        help_text='Maximum file size allowed is 50KB',
+        blank=True,
+        null=True
+    )
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='articles')
     categories = models.ManyToManyField(Category, related_name='articles')
@@ -62,6 +75,8 @@ class Article(models.Model):
     ai_enhanced = models.BooleanField(default=False)
     linkedin_published = models.BooleanField(default=False)
     linkedin_post_id = models.CharField(max_length=100, blank=True, null=True)
+    view_count = models.PositiveIntegerField(default=0)
+    likes = models.ManyToManyField(User, through='ArticleLike', related_name='liked_articles')
 
     class Meta:
         ordering = ['-created_at']
@@ -75,6 +90,22 @@ class Article(models.Model):
         if self.status == 'published' and not self.published_at:
             self.published_at = timezone.now()
         super().save(*args, **kwargs)
+
+    @property
+    def like_count(self):
+        return self.article_likes.count()
+
+class ArticleLike(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='article_likes')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'article')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} likes {self.article.title}"
 
 class ContentVersion(models.Model):
     article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='versions')

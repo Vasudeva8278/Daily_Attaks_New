@@ -1,250 +1,169 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}{{ article.title }} - The Daily Attack{% endblock %}
 
+{% block extra_css %}
+<style>
+    .article-header {
+        margin-bottom: 2rem;
+    }
+    
+    .article-meta {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin: 1rem 0;
+        color: #6c757d;
+    }
+    
+    .article-stats {
+        display: flex;
+        gap: 15px;
+        color: #6c757d;
+        font-size: 1rem;
+    }
+    
+    .article-stat {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .article-stat i {
+        font-size: 1.2rem;
+    }
+    
+    .like-btn {
+        background: none;
+        border: none;
+        padding: 0;
+        color: #6c757d;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .like-btn:hover {
+        color: var(--accent-color);
+    }
+    
+    .like-btn.liked {
+        color: var(--accent-color);
+    }
+    
+    .like-btn i {
+        font-size: 1.4rem;
+    }
+    
+    .article-content {
+        font-size: 1.1rem;
+        line-height: 1.8;
+    }
+    
+    .article-image {
+        max-width: 100%;
+        height: auto;
+        margin-bottom: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-md-8">
-        <article class="card mb-4">
-            {% if article.featured_image %}
-                <img src="{{ article.featured_image.url }}" class="card-img-top" alt="{{ article.title }}">
-            {% endif %}
-            <div class="card-body">
-                <h1 class="card-title">{{ article.title }}</h1>
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div>
-                        <small class="text-muted">
-                            <i class="fas fa-user"></i> {{ article.author.username }}
-                            <br>
-                            <i class="fas fa-calendar"></i> {{ article.created_at|date:"M d, Y" }}
-                        </small>
+<div class="container py-4">
+    <article class="article-detail">
+        <header class="article-header">
+            <h1 class="display-4">{{ article.title }}</h1>
+            
+            <div class="article-meta">
+                <div class="author">
+                    <i class="fas fa-user"></i>
+                    {{ article.author.get_full_name|default:article.author.username }}
+                </div>
+                <div class="date">
+                    <i class="fas fa-calendar"></i>
+                    {{ article.published_at|date:"F d, Y" }}
+                </div>
+                <div class="article-stats">
+                    <div class="article-stat">
+                        <i class="fas fa-eye"></i>
+                        <span>{{ article.view_count }}</span>
                     </div>
-                    {% if article.ai_enhanced %}
-                        <span class="ai-badge">
-                            <i class="fas fa-robot"></i> AI Enhanced
-                        </span>
-                    {% endif %}
-                </div>
-                <div class="article-content">
-                    {{ article.content|safe }}
-                </div>
-                <div class="mt-4">
-                    <h5>Categories:</h5>
-                    {% for category in article.categories.all %}
-                        <a href="/categories/{{ category.id }}" class="btn btn-outline-secondary btn-sm me-2">
-                            {{ category.name }}
-                        </a>
-                    {% endfor %}
-                </div>
-                <div class="mt-3">
-                    <h5>Tags:</h5>
-                    {% for tag in article.tags.all %}
-                        <a href="/tags/{{ tag.id }}" class="btn btn-outline-primary btn-sm me-2">
-                            {{ tag.name }}
-                        </a>
-                    {% endfor %}
+                    <div class="article-stat">
+                        <button class="like-btn {% if user_has_liked %}liked{% endif %}" 
+                                data-article-id="{{ article.pk }}"
+                                {% if not user.is_authenticated %}disabled title="Login to like"{% endif %}>
+                            <i class="fas fa-heart"></i>
+                        </button>
+                        <span class="like-count">{{ article.like_count }}</span>
+                    </div>
                 </div>
             </div>
-            <div class="card-footer bg-white">
-                {% if user.is_authenticated and user.is_staff %}
-                    <div class="btn-group">
-                        <a href="/articles/{{ article.id }}/edit" class="btn btn-primary">
-                            <i class="fas fa-edit"></i> Edit Article
-                        </a>
-                        <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
-                            <span class="visually-hidden">Toggle Dropdown</span>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#enhanceModal">
-                                    <i class="fas fa-magic"></i> Enhance with AI
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#headlineModal">
-                                    <i class="fas fa-heading"></i> Generate Headline
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#publishModal">
-                                    <i class="fas fa-paper-plane"></i> Publish to LinkedIn
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
+            
+            {% if article.categories.exists or article.tags.exists %}
+            <div class="article-taxonomy mb-3">
+                {% if article.categories.exists %}
+                <div class="categories mb-2">
+                    {% for category in article.categories.all %}
+                    <span class="badge bg-primary">{{ category.name }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                {% if article.tags.exists %}
+                <div class="tags">
+                    {% for tag in article.tags.all %}
+                    <span class="badge bg-secondary">{{ tag.name }}</span>
+                    {% endfor %}
+                </div>
                 {% endif %}
             </div>
-        </article>
-
-        <!-- AI Enhancement Modal -->
-        <div class="modal fade" id="enhanceModal" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Enhance Content with AI</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="enhanceForm">
-                            <div class="mb-3">
-                                <label for="tone" class="form-label">Tone</label>
-                                <select class="form-select" id="tone" name="tone">
-                                    <option value="professional">Professional</option>
-                                    <option value="casual">Casual</option>
-                                    <option value="formal">Formal</option>
-                                    <option value="technical">Technical</option>
-                                    <option value="conversational">Conversational</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="length" class="form-label">Length</label>
-                                <select class="form-select" id="length" name="length">
-                                    <option value="short">Short</option>
-                                    <option value="medium" selected>Medium</option>
-                                    <option value="long">Long</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="target_audience" class="form-label">Target Audience</label>
-                                <select class="form-select" id="target_audience" name="target_audience">
-                                    <option value="general">General</option>
-                                    <option value="technical">Technical</option>
-                                    <option value="business">Business</option>
-                                    <option value="academic">Academic</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="style" class="form-label">Style</label>
-                                <select class="form-select" id="style" name="style">
-                                    <option value="news">News</option>
-                                    <option value="blog">Blog</option>
-                                    <option value="report">Report</option>
-                                    <option value="analysis">Analysis</option>
-                                </select>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-primary" id="enhanceButton">Enhance</button>
-                    </div>
-                </div>
-            </div>
+            {% endif %}
+        </header>
+        
+        {% if article.featured_image %}
+        <img src="{{ article.featured_image.url }}" alt="{{ article.title }}" class="article-image">
+        {% endif %}
+        
+        <div class="article-content">
+            {{ article.content|linebreaks }}
         </div>
-
-        <!-- Headline Generation Modal -->
-        <div class="modal fade" id="headlineModal" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Generate Headline</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="headlineForm">
-                            <div class="mb-3">
-                                <label for="headline_style" class="form-label">Style</label>
-                                <select class="form-select" id="headline_style" name="style">
-                                    <option value="news">News</option>
-                                    <option value="blog">Blog</option>
-                                    <option value="social">Social Media</option>
-                                    <option value="seo">SEO Optimized</option>
-                                </select>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-primary" id="generateHeadlineButton">Generate</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Article Analytics</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-6">
-                        <div class="text-center">
-                            <h3>{{ article.analytics.views }}</h3>
-                            <p class="text-muted">Total Views</p>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="text-center">
-                            <h3>{{ article.analytics.linkedin_views }}</h3>
-                            <p class="text-muted">LinkedIn Views</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="row mt-3">
-                    <div class="col-4">
-                        <div class="text-center">
-                            <h4>{{ article.analytics.linkedin_likes }}</h4>
-                            <p class="text-muted">Likes</p>
-                        </div>
-                    </div>
-                    <div class="col-4">
-                        <div class="text-center">
-                            <h4>{{ article.analytics.linkedin_comments }}</h4>
-                            <p class="text-muted">Comments</p>
-                        </div>
-                    </div>
-                    <div class="col-4">
-                        <div class="text-center">
-                            <h4>{{ article.analytics.linkedin_shares }}</h4>
-                            <p class="text-muted">Shares</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    </article>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-$(document).ready(function() {
-    // AI Enhancement
-    $('#enhanceButton').click(function() {
-        const formData = $('#enhanceForm').serialize();
-        $.post(`/api/articles/{{ article.id }}/enhance_with_ai/`, formData, function(response) {
-            if (response.status === 'enhanced') {
-                // Update article content
-                $('.article-content').html(response.content);
-                // Show success message
-                alert('Content enhanced successfully!');
-                $('#enhanceModal').modal('hide');
-            } else {
-                alert('Error enhancing content: ' + response.error);
+document.addEventListener('DOMContentLoaded', function() {
+    const likeBtn = document.querySelector('.like-btn');
+    if (likeBtn) {
+        likeBtn.addEventListener('click', function() {
+            if (!this.disabled) {
+                const articleId = this.dataset.articleId;
+                const likeCount = this.nextElementSibling;
+                
+                fetch(`/articles/${articleId}/like/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        this.classList.toggle('liked', data.liked);
+                        likeCount.textContent = data.like_count;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    toastr.error('Error updating like. Please try again.');
+                });
             }
-        }).fail(function() {
-            alert('Error enhancing content. Please try again.');
         });
-    });
-
-    // Headline Generation
-    $('#generateHeadlineButton').click(function() {
-        const formData = $('#headlineForm').serialize();
-        $.post(`/api/articles/{{ article.id }}/generate_headline/`, formData, function(response) {
-            if (response.headline) {
-                // Update article title
-                $('.card-title').text(response.headline);
-                // Show success message
-                alert('Headline generated successfully!');
-                $('#headlineModal').modal('hide');
-            } else {
-                alert('Error generating headline: ' + response.error);
-            }
-        }).fail(function() {
-            alert('Error generating headline. Please try again.');
-        });
-    });
+    }
 });
 </script>
-{% endblock %} 
+{% endblock %}

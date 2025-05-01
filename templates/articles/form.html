@@ -1,70 +1,97 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}{% if article %}Edit{% else %}Create{% endif %} Article - The Daily Attack{% endblock %}
+{% block title %}{% if form.instance.pk %}Edit Article{% else %}Create Article{% endif %} - The Daily Attack{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.css" rel="stylesheet">
+<style>
+    .form-section {
+        background: white;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .image-preview {
+        max-width: 300px;
+        margin-top: 10px;
+        border-radius: 5px;
+        display: none;
+    }
+    
+    .error-feedback {
+        color: #dc3545;
+        font-size: 0.875em;
+        margin-top: 0.25rem;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8 offset-md-2">
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title mb-0">{% if article %}Edit{% else %}Create{% endif %} Article</h2>
-            </div>
-            <div class="card-body">
-                <form id="articleForm" method="post" enctype="multipart/form-data">
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="form-section">
+                <h1 class="h2 mb-4">{% if form.instance.pk %}Edit Article{% else %}Create Article{% endif %}</h1>
+                
+                <form method="post" enctype="multipart/form-data" id="articleForm">
                     {% csrf_token %}
+                    
+                    <div id="form-errors" class="alert alert-danger" style="display: none;"></div>
+                    
                     <div class="mb-3">
-                        <label for="title" class="form-label">Title</label>
-                        <input type="text" class="form-control" id="title" name="title" value="{{ article.title|default:'' }}" required>
+                        <label for="{{ form.title.id_for_label }}" class="form-label">Title*</label>
+                        {{ form.title }}
+                        <div class="error-feedback" data-field="title"></div>
                     </div>
+                    
                     <div class="mb-3">
-                        <label for="excerpt" class="form-label">Excerpt</label>
-                        <textarea class="form-control" id="excerpt" name="excerpt" rows="3">{{ article.excerpt|default:'' }}</textarea>
+                        <label for="{{ form.excerpt.id_for_label }}" class="form-label">Excerpt</label>
+                        {{ form.excerpt }}
+                        <div class="form-text">A brief summary of your article</div>
+                        <div class="error-feedback" data-field="excerpt"></div>
                     </div>
+                    
                     <div class="mb-3">
-                        <label for="content" class="form-label">Content</label>
-                        <textarea class="form-control" id="content" name="content" rows="10" required>{{ article.content|default:'' }}</textarea>
+                        <label for="{{ form.content.id_for_label }}" class="form-label">Content*</label>
+                        {{ form.content }}
+                        <div class="error-feedback" data-field="content"></div>
                     </div>
+                    
                     <div class="mb-3">
-                        <label for="featured_image" class="form-label">Featured Image</label>
-                        <input type="file" class="form-control" id="featured_image" name="featured_image" accept="image/*">
-                        {% if article.featured_image %}
-                            <div class="mt-2">
-                                <img src="{{ article.featured_image.url }}" alt="Current featured image" class="img-thumbnail" style="max-height: 200px;">
-                            </div>
-                        {% endif %}
+                        <label for="{{ form.featured_image.id_for_label }}" class="form-label">Featured Image</label>
+                        {{ form.featured_image }}
+                        <div class="form-text">Maximum file size: 50KB</div>
+                        <div class="error-feedback" data-field="featured_image"></div>
+                        <img id="imagePreview" class="image-preview" alt="Preview">
                     </div>
-                    <div class="mb-3">
-                        <label for="categories" class="form-label">Categories</label>
-                        <select class="form-select" id="categories" name="categories" multiple>
-                            {% for category in categories %}
-                                <option value="{{ category.id }}" {% if category in article.categories.all %}selected{% endif %}>
-                                    {{ category.name }}
-                                </option>
-                            {% endfor %}
-                        </select>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.categories.id_for_label }}" class="form-label">Categories</label>
+                            {{ form.categories }}
+                            <div class="error-feedback" data-field="categories"></div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.tags.id_for_label }}" class="form-label">Tags</label>
+                            {{ form.tags }}
+                            <div class="error-feedback" data-field="tags"></div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="tags" class="form-label">Tags</label>
-                        <select class="form-select" id="tags" name="tags" multiple>
-                            {% for tag in tags %}
-                                <option value="{{ tag.id }}" {% if tag in article.tags.all %}selected{% endif %}>
-                                    {{ tag.name }}
-                                </option>
-                            {% endfor %}
-                        </select>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
+                        {{ form.status }}
+                        <div class="error-feedback" data-field="status"></div>
                     </div>
-                    <div class="mb-3">
-                        <label for="status" class="form-label">Status</label>
-                        <select class="form-select" id="status" name="status">
-                            <option value="draft" {% if article.status == 'draft' %}selected{% endif %}>Draft</option>
-                            <option value="published" {% if article.status == 'published' %}selected{% endif %}>Published</option>
-                        </select>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <button type="submit" class="btn btn-primary">
-                            {% if article %}Update{% else %}Create{% endif %} Article
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{% url 'article_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4" id="submitBtn">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            <span class="btn-text">{% if form.instance.pk %}Update{% else %}Publish{% endif %}</span>
                         </button>
-                        <a href="/articles" class="btn btn-secondary">Cancel</a>
                     </div>
                 </form>
             </div>
@@ -73,60 +100,116 @@
 </div>
 {% endblock %}
 
-{% block extra_css %}
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-{% endblock %}
-
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.js"></script>
 <script>
-$(document).ready(function() {
-    // Initialize Select2 for categories and tags
-    $('#categories, #tags').select2({
-        placeholder: 'Select options',
-        allowClear: true
+    // Configure toastr
+    toastr.options = {
+        "closeButton": true,
+        "progressBar": true,
+        "positionClass": "toast-top-right",
+        "timeOut": "3000"
+    };
+    
+    // Clear error messages
+    function clearErrors() {
+        document.querySelectorAll('.error-feedback').forEach(el => el.textContent = '');
+        document.getElementById('form-errors').style.display = 'none';
+    }
+    
+    // Show error messages
+    function showErrors(errors) {
+        clearErrors();
+        if (typeof errors === 'string') {
+            const errorDiv = document.getElementById('form-errors');
+            errorDiv.textContent = errors;
+            errorDiv.style.display = 'block';
+        } else {
+            Object.entries(errors).forEach(([field, message]) => {
+                const errorDiv = document.querySelector(`.error-feedback[data-field="${field}"]`);
+                if (errorDiv) {
+                    errorDiv.textContent = message;
+                }
+            });
+        }
+    }
+    
+    // Image preview and validation
+    document.getElementById('{{ form.featured_image.id_for_label }}').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        const preview = document.getElementById('imagePreview');
+        const maxSize = 50 * 1024; // 50KB
+        
+        if (file) {
+            if (file.size > maxSize) {
+                toastr.error(`Image size (${(file.size/1024).toFixed(1)}KB) exceeds maximum allowed size of 50KB`);
+                e.target.value = '';
+                preview.style.display = 'none';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        } else {
+            preview.style.display = 'none';
+        }
     });
-
-    // Initialize TinyMCE for content editor
-    tinymce.init({
-        selector: '#content',
-        height: 500,
-        plugins: [
-            'advlist autolink lists link image charmap print preview anchor',
-            'searchreplace visualblocks code fullscreen',
-            'insertdatetime media table paste code help wordcount'
-        ],
-        toolbar: 'undo redo | formatselect | bold italic backcolor | \
-                 alignleft aligncenter alignright alignjustify | \
-                 bullist numlist outdent indent | removeformat | help'
-    });
-
-    // Form submission
-    $('#articleForm').submit(function(e) {
+    
+    // Form submission handling
+    document.getElementById('articleForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
-        // Get form data
+        // Clear previous errors
+        clearErrors();
+        
+        // Show loading state
+        const submitBtn = document.getElementById('submitBtn');
+        const spinner = submitBtn.querySelector('.spinner-border');
+        const btnText = submitBtn.querySelector('.btn-text');
+        
+        submitBtn.disabled = true;
+        spinner.classList.remove('d-none');
+        btnText.textContent = 'Publishing...';
+        
         const formData = new FormData(this);
         
-        // Add TinyMCE content
-        formData.set('content', tinymce.get('content').getContent());
-        
-        // Submit form
-        $.ajax({
-            url: '{% if article %}/api/articles/{{ article.id }}/{% else %}/api/articles/{% endif %}',
-            type: '{% if article %}PUT{% else %}POST{% endif %}',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function(response) {
-                window.location.href = '/articles/' + response.id;
-            },
-            error: function(xhr) {
-                alert('Error saving article: ' + xhr.responseJSON.error);
+        fetch(window.location.pathname, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
             }
+        })
+        .then(response => response.json().then(data => ({status: response.status, data})))
+        .then(({status, data}) => {
+            if (data.success) {
+                toastr.success(data.message || 'Article created successfully!');
+                setTimeout(() => {
+                    window.location.href = data.redirect_url;
+                }, 1000);
+            } else {
+                if (status === 400 && data.field_errors) {
+                    showErrors(data.field_errors);
+                    toastr.error('Please correct the form errors.');
+                } else {
+                    toastr.error(data.error || 'Error creating article. Please try again.');
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            toastr.error('An unexpected error occurred. Please try again.');
+        })
+        .finally(() => {
+            // Reset button state
+            submitBtn.disabled = false;
+            spinner.classList.add('d-none');
+            btnText.textContent = '{% if form.instance.pk %}Update{% else %}Publish{% endif %}';
         });
     });
-});
 </script>
-{% endblock %} 
+{% endblock %}
